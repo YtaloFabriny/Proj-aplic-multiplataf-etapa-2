@@ -1,0 +1,355 @@
+{% extends "base.html" %}
+
+{% block title %}Pets para Adoção - PetEncontra{% endblock %}
+
+{% block content %}
+<div class="container" style="background-color: var(--bg-primary);">
+    <!-- Cabeçalho -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="hero-section rounded p-4 text-center">
+                <h1 class="display-4 mb-3">
+                    <i class="bi bi-heart-fill me-3"></i>Encontre seu novo melhor amigo
+                </h1>
+                <p class="lead">Centenas de pets estão esperando por um lar cheio de amor!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-funnel me-2"></i>Filtros de Busca
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('index') }}" class="row g-3">
+                        <div class="col-md-3 col-lg-2">
+                            <label for="especie" class="form-label">Espécie</label>
+                            <select class="form-select" id="especie" name="especie">
+                                <option value="">Todas</option>
+                                {% for especie in especies %}
+                                    <option value="{{ especie }}" {% if filtro_especie == especie %}selected{% endif %}>
+                                        {{ especie }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3 col-lg-2">
+                            <label for="idade" class="form-label">Idade</label>
+                            <select class="form-select" id="idade" name="idade">
+                                <option value="">Todas</option>
+                                {% for idade in idades %}
+                                    <option value="{{ idade }}" {% if filtro_idade == idade %}selected{% endif %}>
+                                        {{ idade }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3 col-lg-2">
+                            <label for="porte" class="form-label">Porte</label>
+                            <select class="form-select" id="porte" name="porte">
+                                <option value="">Todos</option>
+                                {% for porte in portes %}
+                                    <option value="{{ porte }}" {% if filtro_porte == porte %}selected{% endif %}>{{ porte }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3 col-lg-2">
+                            <label for="cep" class="form-label">
+                                <i class="bi bi-geo-alt me-1"></i>CEP
+                            </label>
+                            <input type="text" class="form-control" id="cep" name="cep" 
+                                   placeholder="00000-000" maxlength="9" value="{{ filtro_cep or '' }}">
+                            <small class="form-text text-muted">Região da ONG</small>
+                        </div>
+                        
+                        <div class="col-md-6 col-lg-2 d-flex align-items-end">
+                            <div class="d-grid gap-2 w-100">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search me-2"></i>Filtrar
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 col-lg-2 d-flex align-items-end">
+                            <div class="d-grid gap-2 w-100">
+                                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle me-2"></i>Limpar
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- Botão de proximidade -->
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <button type="button" class="btn btn-success" id="btn-proximidade">
+                                <i class="bi bi-geo-alt-fill me-2"></i>Encontrar pets perto de mim
+                            </button>
+                            <small class="text-muted ms-2">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Permita o acesso à sua localização para encontrar pets próximos
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading spinner (inicialmente oculto) -->
+    <div id="loading-spinner" class="text-center mb-4" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Carregando...</span>
+        </div>
+        <p class="mt-2">Buscando pets próximos...</p>
+    </div>
+
+    <!-- Galeria de pets -->
+    <div class="row" id="pets-container">
+        {% if pets %}
+            {% for pet in pets %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 pet-card">
+                        {% if pet.foto_url %}
+                            <img src="{{ pet.foto_url }}" class="card-img-top" alt="{{ pet.nome }}" style="height: 250px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
+                                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">
+                                <i class="bi bi-{{ 'dog' if pet.especie == 'Cachorro' else 'cat' }} me-2"></i>
+                                {{ pet.nome }}
+                            </h5>
+                            
+                            <div class="mb-2">
+                                <span class="badge bg-primary me-1">{{ pet.especie }}</span>
+                                <span class="badge bg-info me-1">{{ pet.idade }}</span>
+                                {% if pet.porte %}
+                                    <span class="badge bg-secondary">{{ pet.porte }}</span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if pet.descricao %}
+                                <p class="card-text flex-grow-1">{{ pet.descricao[:100] }}{% if pet.descricao|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                            
+                            <div class="mt-auto">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <small class="text-muted">
+                                            <i class="bi bi-building me-1"></i>{{ pet.ong.cidade }}
+                                        </small>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <small class="text-muted">
+                                            <i class="bi bi-telephone me-1"></i>{{ pet.ong.telefone }}
+                                        </small>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2 mt-2">
+                                    <a href="{{ url_for('pet_detalhes', pet_id=pet.id) }}" class="btn btn-primary">
+                                        <i class="bi bi-eye me-2"></i>Ver Detalhes
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="bi bi-heart-broken text-muted" style="font-size: 4rem;"></i>
+                    <h3 class="mt-3 text-muted">Nenhum pet encontrado</h3>
+                    <p class="text-muted">Tente ajustar os filtros ou verifique novamente mais tarde.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Resultados de proximidade -->
+    <div id="proximidade-results" style="display: none;">
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <h5><i class="bi bi-geo-alt-fill me-2"></i>Pets próximos encontrados</h5>
+                    <p class="mb-0">Os pets abaixo estão organizados por proximidade da sua localização.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Máscara para CEP
+document.getElementById('cep').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.replace(/^(\d{5})(\d)/, '$1-$2');
+    e.target.value = value;
+});
+
+// Funcionalidade de busca por proximidade
+document.getElementById('btn-proximidade').addEventListener('click', function() {
+    if (!navigator.geolocation) {
+        alert('Geolocalização não é suportada por este navegador.');
+        return;
+    }
+
+    // Mostrar loading
+    document.getElementById('loading-spinner').style.display = 'block';
+    document.getElementById('btn-proximidade').disabled = true;
+
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            const userLat = position.coords.latitude;
+            const userLon = position.coords.longitude;
+
+            // Fazer requisição para API
+            fetch('/api/pets-por-proximidade', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    latitude: userLat,
+                    longitude: userLon,
+                    raio: 50
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Esconder loading
+                document.getElementById('loading-spinner').style.display = 'none';
+                document.getElementById('btn-proximidade').disabled = false;
+
+                if (data.error) {
+                    alert('Erro: ' + data.error);
+                    return;
+                }
+
+                // Mostrar resultados
+                mostrarPetsProximos(data.pets);
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                document.getElementById('loading-spinner').style.display = 'none';
+                document.getElementById('btn-proximidade').disabled = false;
+                alert('Erro ao buscar pets próximos. Tente novamente.');
+            });
+        },
+        function(error) {
+            document.getElementById('loading-spinner').style.display = 'none';
+            document.getElementById('btn-proximidade').disabled = false;
+            
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    alert('Permissão de localização negada. Por favor, permita o acesso à localização.');
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    alert('Informações de localização indisponíveis.');
+                    break;
+                case error.TIMEOUT:
+                    alert('Timeout ao obter localização.');
+                    break;
+                default:
+                    alert('Erro desconhecido ao obter localização.');
+                    break;
+            }
+        }
+    );
+});
+
+function mostrarPetsProximos(pets) {
+    const container = document.getElementById('pets-container');
+    const proximidadeDiv = document.getElementById('proximidade-results');
+    
+    if (pets.length === 0) {
+        container.innerHTML = `
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="bi bi-heart-broken text-muted" style="font-size: 4rem;"></i>
+                    <h3 class="mt-3 text-muted">Nenhum pet próximo encontrado</h3>
+                    <p class="text-muted">Tente aumentar o raio de busca ou verifique novamente mais tarde.</p>
+                </div>
+            </div>
+        `;
+        proximidadeDiv.style.display = 'block';
+        return;
+    }
+
+    // Gerar HTML dos pets
+    let petsHTML = '';
+    pets.forEach(pet => {
+        const fotoHTML = pet.foto_url ? 
+            `<img src="${pet.foto_url}" class="card-img-top" alt="${pet.nome}" style="height: 250px; object-fit: cover;">` :
+            `<div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
+                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+            </div>`;
+
+        const descricao = pet.descricao ? 
+            (pet.descricao.length > 100 ? pet.descricao.substring(0, 100) + '...' : pet.descricao) : '';
+
+        petsHTML += `
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card h-100 pet-card">
+                    ${fotoHTML}
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">
+                            <i class="bi bi-${pet.especie === 'Cachorro' ? 'dog' : 'cat'} me-2"></i>
+                            ${pet.nome}
+                            <span class="badge bg-success ms-2">${pet.distancia} km</span>
+                        </h5>
+                        
+                        <div class="mb-2">
+                            <span class="badge bg-primary me-1">${pet.especie}</span>
+                            <span class="badge bg-info me-1">${pet.idade}</span>
+                            ${pet.porte ? `<span class="badge bg-secondary">${pet.porte}</span>` : ''}
+                        </div>
+                        
+                        ${descricao ? `<p class="card-text flex-grow-1">${descricao}</p>` : ''}
+                        
+                        <div class="mt-auto">
+                            <div class="row">
+                                <div class="col-6">
+                                    <small class="text-muted">
+                                        <i class="bi bi-building me-1"></i>${pet.ong_cidade || 'N/A'}
+                                    </small>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <small class="text-muted">
+                                        <i class="bi bi-telephone me-1"></i>${pet.ong_telefone || 'N/A'}
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 mt-2">
+                                <a href="/pet/${pet.id}" class="btn btn-primary">
+                                    <i class="bi bi-eye me-2"></i>Ver Detalhes
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = petsHTML;
+    proximidadeDiv.style.display = 'block';
+}
+</script>
+{% endblock %}

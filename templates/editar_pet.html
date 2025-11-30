@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Pet - PetEncontra{% endblock %}
+
+{% block content %}
+<div class="container" style="background-color: var(--bg-primary);">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="bi bi-pencil me-2"></i>Editar Pet: {{ pet.nome }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <!-- Nome do Pet -->
+                            <div class="col-12 mb-3">
+                                <label for="nome" class="form-label">
+                                    <i class="bi bi-heart me-1"></i>Nome do Pet *
+                                </label>
+                                <input type="text" class="form-control" id="nome" name="nome" 
+                                       value="{{ pet.nome }}" required>
+                            </div>
+
+                            <!-- Espécie -->
+                            <div class="col-md-6 mb-3">
+                                <label for="especie" class="form-label">
+                                    <i class="bi bi-{{ 'dog' if pet.especie == 'Cachorro' else 'cat' }} me-1"></i>Espécie *
+                                </label>
+                                <select class="form-select" id="especie" name="especie" required>
+                                    {% for especie in especies %}
+                                        <option value="{{ especie }}" {% if pet.especie == especie %}selected{% endif %}>
+                                            {{ especie }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Idade -->
+                            <div class="col-md-6 mb-3">
+                                <label for="idade" class="form-label">
+                                    <i class="bi bi-calendar me-1"></i>Idade *
+                                </label>
+                                <select class="form-select" id="idade" name="idade" required>
+                                    {% for idade in idades %}
+                                        <option value="{{ idade }}" {% if pet.idade == idade %}selected{% endif %}>
+                                            {{ idade }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Porte -->
+                            <div class="col-md-6 mb-3">
+                                <label for="porte" class="form-label">
+                                    <i class="bi bi-rulers me-1"></i>Porte
+                                </label>
+                                <select class="form-select" id="porte" name="porte">
+                                    <option value="">Selecione o porte</option>
+                                    {% for porte in portes %}
+                                        <option value="{{ porte }}" {% if pet.porte == porte %}selected{% endif %}>
+                                            {{ porte }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Foto URL -->
+                            <div class="col-md-6 mb-3">
+                                <label for="foto_url" class="form-label">
+                                    <i class="bi bi-image me-1"></i>URL da Foto
+                                </label>
+                                <input type="url" class="form-control" id="foto_url" name="foto_url"
+                                       value="{{ pet.foto_url or '' }}"
+                                       placeholder="https://exemplo.com/foto.jpg">
+                                <div class="form-text">Link para uma imagem do pet</div>
+                            </div>
+
+                            <!-- Descrição -->
+                            <div class="col-12 mb-3">
+                                <label for="descricao" class="form-label">
+                                    <i class="bi bi-chat-text me-1"></i>Descrição do Pet
+                                </label>
+                                <textarea class="form-control" id="descricao" name="descricao" rows="4"
+                                          placeholder="Conte um pouco sobre o pet: personalidade, comportamento, cuidados especiais...">{{ pet.descricao or '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('ong_painel') }}" class="btn btn-secondary me-md-2">
+                                <i class="bi bi-arrow-left me-2"></i>Voltar
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-check-circle me-2"></i>Atualizar Pet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

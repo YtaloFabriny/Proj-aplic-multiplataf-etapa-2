@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}{{ pet.nome }} - PetEncontra{% endblock %}
+
+{% block content %}
+<div class="container" style="background-color: var(--bg-primary);">
+    <div class="row">
+        <!-- Imagem do Pet -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                {% if pet.foto_url %}
+                    <img src="{{ pet.foto_url }}" class="card-img-top" alt="{{ pet.nome }}" 
+                         style="height: 400px; object-fit: cover;">
+                {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                         style="height: 400px;">
+                        <div class="text-center">
+                            <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
+                            <p class="text-muted mt-2">Foto não disponível</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Informações do Pet -->
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="bi bi-{{ 'dog' if pet.especie == 'Cachorro' else 'cat' }} me-2"></i>
+                        {{ pet.nome }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Badges de características -->
+                    <div class="mb-3">
+                        <span class="badge bg-primary me-2 fs-6">
+                            <i class="bi bi-{{ 'dog' if pet.especie == 'Cachorro' else 'cat' }} me-1"></i>
+                            {{ pet.especie }}
+                        </span>
+                        <span class="badge bg-info me-2 fs-6">
+                            <i class="bi bi-calendar me-1"></i>
+                            {{ pet.idade }}
+                        </span>
+                        {% if pet.porte %}
+                            <span class="badge bg-secondary me-2 fs-6">
+                                <i class="bi bi-rulers me-1"></i>
+                                {{ pet.porte }}
+                            </span>
+                        {% endif %}
+                        {% if pet.adotado %}
+                            <span class="badge bg-success fs-6">
+                                <i class="bi bi-check-circle me-1"></i>
+                                Adotado
+                            </span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark fs-6">
+                                <i class="bi bi-search me-1"></i>
+                                Disponível para adoção
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Descrição -->
+                    {% if pet.descricao %}
+                        <div class="mb-4">
+                            <h5><i class="bi bi-chat-text me-2"></i>Sobre {{ pet.nome }}</h5>
+                            <p class="card-text">{{ pet.descricao }}</p>
+                        </div>
+                    {% endif %}
+
+                    <!-- Informações da ONG -->
+                    <div class="mb-4">
+                        <h5><i class="bi bi-building me-2"></i>Informações da ONG</h5>
+                        <div class="row">
+                            <div class="col-12 mb-2">
+                                <strong>Nome:</strong> {{ pet.ong.nome }}
+                            </div>
+                            {% if pet.ong.cidade %}
+                                <div class="col-12 mb-2">
+                                    <strong>Cidade:</strong> {{ pet.ong.cidade }}
+                                </div>
+                            {% endif %}
+                            {% if pet.ong.telefone %}
+                                <div class="col-12 mb-2">
+                                    <strong>Telefone:</strong> 
+                                    <a href="tel:{{ pet.ong.telefone }}" class="text-decoration-none">
+                                        {{ pet.ong.telefone }}
+                                    </a>
+                                </div>
+                            {% endif %}
+                            {% if pet.ong.email %}
+                                <div class="col-12 mb-2">
+                                    <strong>Email:</strong> 
+                                    <a href="mailto:{{ pet.ong.email }}" class="text-decoration-none">
+                                        {{ pet.ong.email }}
+                                    </a>
+                                </div>
+                            {% endif %}
+                            {% if pet.ong.endereco %}
+                                <div class="col-12 mb-2">
+                                    <strong>Endereço:</strong> {{ pet.ong.endereco }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Data de cadastro -->
+                    <div class="mb-4">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar-plus me-1"></i>
+                            Cadastrado em: {{ pet.data_cadastro.strftime('%d/%m/%Y') if pet.data_cadastro else 'N/A' }}
+                        </small>
+                    </div>
+
+                    <!-- Botões de ação -->
+                    <div class="d-grid gap-2">
+                        {% if not pet.adotado %}
+                            <a href="tel:{{ pet.ong.telefone }}" class="btn btn-success btn-lg">
+                                <i class="bi bi-telephone me-2"></i>Ligar para Adotar
+                            </a>
+                            <a href="mailto:{{ pet.ong.email }}" class="btn btn-outline-primary">
+                                <i class="bi bi-envelope me-2"></i>Enviar Email
+                            </a>
+                        {% else %}
+                            <button class="btn btn-secondary btn-lg" disabled>
+                                <i class="bi bi-check-circle me-2"></i>Este pet já foi adotado
+                            </button>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Voltar para Lista
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pets relacionados -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h4><i class="bi bi-heart me-2"></i>Outros pets da mesma ONG</h4>
+            <div class="row">
+                {% for outro_pet in pet.ong.pets %}
+                    {% if outro_pet.id != pet.id and not outro_pet.adotado %}
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                            <div class="card h-100">
+                                {% if outro_pet.foto_url %}
+                                    <img src="{{ outro_pet.foto_url }}" class="card-img-top" alt="{{ outro_pet.nome }}" 
+                                         style="height: 150px; object-fit: cover;">
+                                {% else %}
+                                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                                         style="height: 150px;">
+                                        <i class="bi bi-image text-muted"></i>
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="bi bi-{{ 'dog' if outro_pet.especie == 'Cachorro' else 'cat' }} me-1"></i>
+                                        {{ outro_pet.nome }}
+                                    </h6>
+                                    <div class="mb-2">
+                                        <span class="badge bg-primary me-1">{{ outro_pet.especie }}</span>
+                                        <span class="badge bg-info">{{ outro_pet.idade }}</span>
+                                    </div>
+                                    <a href="{{ url_for('pet_detalhes', pet_id=outro_pet.id) }}" 
+                                       class="btn btn-outline-primary btn-sm w-100">
+                                        Ver Detalhes
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

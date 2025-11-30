@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastro de ONG - PetEncontra{% endblock %}
+
+{% block content %}
+<div class="container" style="background-color: var(--bg-primary);">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="bi bi-building me-2"></i>Cadastro
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <!-- Tipo de Pessoa -->
+                            <div class="col-12 mb-3">
+                                <label for="tipo_pessoa" class="form-label">
+                                    <i class="bi bi-person-badge me-1"></i>Tipo de Cadastro *
+                                </label>
+                                <select class="form-select" id="tipo_pessoa" name="tipo_pessoa" required>
+                                    <option value="PJ" selected>Pessoa Jurídica (ONG/Instituição)</option>
+                                    <option value="PF">Pessoa Física</option>
+                                </select>
+                            </div>
+
+                            <!-- Nome -->
+                            <div class="col-12 mb-3">
+                                <label for="nome" class="form-label">
+                                    <i class="bi bi-building me-1"></i><span id="label_nome">Nome da ONG</span> *
+                                </label>
+                                <input type="text" class="form-control" id="nome" name="nome" required>
+                            </div>
+
+                            <!-- CNPJ (aparece quando PJ) -->
+                            <div class="col-md-6 mb-3" id="campo_cnpj">
+                                <label for="cnpj" class="form-label">
+                                    <i class="bi bi-card-text me-1"></i>CNPJ *
+                                </label>
+                                <input type="text" class="form-control" id="cnpj" name="cnpj" 
+                                       placeholder="00.000.000/0000-00">
+                            </div>
+
+                            <!-- CPF (aparece quando PF) -->
+                            <div class="col-md-6 mb-3" id="campo_cpf" style="display: none;">
+                                <label for="cpf" class="form-label">
+                                    <i class="bi bi-card-text me-1"></i>CPF *
+                                </label>
+                                <input type="text" class="form-control" id="cpf" name="cpf" 
+                                       placeholder="000.000.000-00">
+                            </div>
+
+                            <!-- Email -->
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">
+                                    <i class="bi bi-envelope me-1"></i>Email *
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+
+                            <!-- Senha -->
+                            <div class="col-md-6 mb-3">
+                                <label for="senha" class="form-label">
+                                    <i class="bi bi-lock me-1"></i>Senha *
+                                </label>
+                                <input type="password" class="form-control" id="senha" name="senha" 
+                                       minlength="6" required>
+                                <div class="form-text">Mínimo de 6 caracteres</div>
+                            </div>
+
+                            <!-- Telefone -->
+                            <div class="col-md-6 mb-3">
+                                <label for="telefone" class="form-label">
+                                    <i class="bi bi-telephone me-1"></i>Telefone
+                                </label>
+                                <input type="tel" class="form-control" id="telefone" name="telefone"
+                                       placeholder="(00) 00000-0000">
+                            </div>
+
+                            <!-- CEP -->
+                            <div class="col-md-4 mb-3">
+                                <label for="cep" class="form-label">
+                                    <i class="bi bi-geo-alt me-1"></i>CEP
+                                </label>
+                                <input type="text" class="form-control" id="cep" name="cep"
+                                       placeholder="00000-000">
+                            </div>
+
+                            <!-- Cidade -->
+                            <div class="col-md-8 mb-3">
+                                <label for="cidade" class="form-label">
+                                    <i class="bi bi-geo-alt me-1"></i>Cidade
+                                </label>
+                                <input type="text" class="form-control" id="cidade" name="cidade">
+                            </div>
+
+                            <!-- Endereço -->
+                            <div class="col-12 mb-3">
+                                <label for="endereco" class="form-label">
+                                    <i class="bi bi-geo-alt me-1"></i>Endereço Completo
+                                </label>
+                                <input type="text" class="form-control" id="endereco" name="endereco"
+                                       placeholder="Rua, número, bairro">
+                            </div>
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('index') }}" class="btn btn-secondary me-md-2">
+                                <i class="bi bi-arrow-left me-2"></i>Voltar
+                            </a>
+                            <button type="submit" class="btn btn-primary" id="btn_cadastrar">
+                                <i class="bi bi-check-circle me-2"></i>Cadastrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <small class="text-muted">
+                        Já possui uma conta? 
+                        <a href="{{ url_for('ong_login') }}" class="text-decoration-none">
+                            Faça login aqui
+                        </a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Alternar entre CPF e CNPJ conforme o tipo de pessoa
+document.getElementById('tipo_pessoa').addEventListener('change', function(e) {
+    const tipoPessoa = e.target.value;
+    const campoCpf = document.getElementById('campo_cpf');
+    const campoCnpj = document.getElementById('campo_cnpj');
+    const inputCpf = document.getElementById('cpf');
+    const inputCnpj = document.getElementById('cnpj');
+    const labelNome = document.getElementById('label_nome');
+    
+    if (tipoPessoa === 'PF') {
+        // Mostrar CPF e ocultar CNPJ
+        campoCpf.style.display = 'block';
+        campoCnpj.style.display = 'none';
+        inputCpf.required = true;
+        inputCnpj.required = false;
+        inputCnpj.value = '';
+        labelNome.textContent = 'Nome Completo';
+    } else {
+        // Mostrar CNPJ e ocultar CPF
+        campoCpf.style.display = 'none';
+        campoCnpj.style.display = 'block';
+        inputCpf.required = false;
+        inputCnpj.required = true;
+        inputCpf.value = '';
+        labelNome.textContent = 'Nome da ONG';
+    }
+});
+
+// Máscara para CNPJ
+document.getElementById('cnpj').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+    value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+    value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+    value = value.replace(/(\d{4})(\d)/, '$1-$2');
+    e.target.value = value;
+});
+
+// Máscara para CPF
+document.getElementById('cpf').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.replace(/^(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
+    value = value.replace(/\.(\d{3})(\d)/, '.$1-$2');
+    e.target.value = value;
+});
+
+// Máscara para telefone
+document.getElementById('telefone').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length <= 10) {
+        value = value.replace(/^(\d{2})(\d)/, '($1) $2');
+        value = value.replace(/(\d{4})(\d)/, '$1-$2');
+    } else {
+        value = value.replace(/^(\d{2})(\d)/, '($1) $2');
+        value = value.replace(/(\d{5})(\d)/, '$1-$2');
+    }
+    e.target.value = value;
+});
+
+// Máscara para CEP
+document.getElementById('cep').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    value = value.replace(/^(\d{5})(\d)/, '$1-$2');
+    e.target.value = value;
+});
+</script>
+{% endblock %}
